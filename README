@@ -1,0 +1,26 @@
+A *very* rough'n'ready Rails plugin that allows relatively trivial integration of the Protovis ( http://vis.stanford.edu/protovis/ ) javascript
+chart rendering API into a Rails project.
+
+The usage is relatively simple, install it as a git submodule:
+	git submodule add git://github.com/ciaranj/redmine.git vendor/plugins/protovisonrails
+	
+There is an includes helper ( protovis_includes ) that allows you to automatically pull in these javascript files.
+
+This initial stab at a plugin requires that width/height parameters are passed in as well as block of javascript that allows
+configuration of the particular chart.  Currently this looks similar to the following:
+
+
+   my_js= <<eos
+             add(pv.Rule)
+                .data(function() pv.range(0, 2, .5))
+                .bottom(function(d) d * 70)
+                .anchor("left").add(pv.Label)
+              .root.add(pv.Bar)
+                .data([1, 1.2, 1.7, 1.5, .7])
+                .height(function(d) d * 70).width(20)
+                .bottom(0).left(function() this.index * 25 + 4)
+eos                .anchor("bottom").add(pv.Label)
+  
+	chart_raw_js(800, 600, my_js)
+	
+The intention is to provide more of a useful object model to build these objects up programatically.
