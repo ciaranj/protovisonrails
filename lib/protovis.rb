@@ -56,19 +56,29 @@ module Protovis
           self.name= options[:name] unless options[:name] == nil
         end
     end
-
-    class Bar < Mark
-      js_attr_accessor :width
-      js_attr_accessor :height
+    
+    class Rule < Mark 
       js_attr_accessor :lineWidth
       js_attr_accessor :strokeStyle
+
+      def initialize( options = {} )
+        super( options )
+        self.type = "pv.Rule"
+        self.data= options[:lineWidth] unless options[:lineWidth] == nil
+        self.data= options[:strokeStyle] unless options[:strokeStyle] == nil
+      end
+    end
+
+    class Bar < Rule
+      js_attr_accessor :width
+      js_attr_accessor :height
       js_attr_accessor :fillStyle
     
       def initialize( options = {} )
+        super( options )
         self.type = "pv.Bar"
         self.width= options[:width] unless options[:width] == nil
         self.height= options[:height] unless options[:height] == nil
-        super( options )
       end
     end
     
@@ -131,7 +141,6 @@ module Protovis
       #  chart_raw_js(800, 600, my_js)
       def chart_raw_js(width, height, raw_js)
 
-       # chart_js= "var vis= new pv.Panel().width(#{width}).height(#{height})\n"
        panel =  Panel.new(:name=> 'panel', :width=> width, :height => height )
        bar= Bar.new(:name=> 'bars', 
                     :width=> 20,
@@ -140,7 +149,11 @@ module Protovis
                     :left => "function() this.index * 25 + 4",
                     :data => "[1, 1.2, 1.7, 1.5, .7]"
                     )
+       rule= Rule.new(:name => 'rules',
+                      :data => "function() pv.range(0,2, .5)",
+                      :bottom=> "function(d) d * 70")
                     
+      panel.add( rule )
        panel.add( bar )
        chart_js= panel.to_js
       # chart_js << raw_js
