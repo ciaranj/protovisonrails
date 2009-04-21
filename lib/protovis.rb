@@ -4,7 +4,44 @@ module Protovis
       JavascriptFunction.new(function_name)
     end
     
+    class RGBA
+      attr_accessor :red
+      attr_accessor :green
+      attr_accessor :blue
+      attr_accessor :alpha
+      def initialize(red, green, blue, alpha )
+        self.red= red
+        self.green= green
+        self.blue= blue
+        self.alpha= alpha
+      end
+      
+      def to_js
+        %{"rgba(#{@red}, #{@green}, #{@blue}, #{@alpha})"}
+      end
+    end
+    
     class ProtoVisObject
+      attr_accessor :children
+      
+      def get_parents( parents =[])
+          if self.children && self.children.size > 0 
+            parents << self
+            self.children.each do |child|
+             child.get_parents( parents) 
+            end
+          end
+      end
+      
+      def get_children( children =[])
+        if self.children && self.children.size > 0 
+          self.children.each do |child|
+           child.get_children( children) 
+          end
+        else
+          children << self
+        end
+      end
       
        def self.js_attr_accessor(*accessors)
          accessors.each do |m|
@@ -34,12 +71,25 @@ module Protovis
               val= @js_properties[key]
               if val.class == Array
                 val = val.inspect
+              elsif val.respond_to?(:to_js)
+                val= val.to_js
+              elsif val.class == String && val.index("func") != 0 #TODO: Treating string literal arguments and functions as identical is bad...
+                val = "\"#{val}\""
               end
               prop << "#{key}(#{val})."
             end
           end
           prop.chomp(".")
         end
+        def add( child ) 
+          if self.children == nil 
+            self.children = [] 
+          end
+          
+          self.children << child
+          child.parent= self
+        end 
+  
     end
 
     class Mark < ProtoVisObject
@@ -64,6 +114,32 @@ module Protovis
         end
     end
     
+    class Line < Mark
+      js_attr_accessor :lineWidth
+      js_attr_accessor :strokeStyle
+      js_attr_accessor :fillStyle
+      def initialize( options = {} )
+        super( options )
+        self.type = "pv.Line"
+        self.lineWidth= options[:lineWidth] unless options[:lineWidth] == nil
+        self.strokeStyle= options[:strokeStyle] unless options[:strokeStyle] == nil
+        self.fillStyle= options[:fillStyle] unless options[:fillStyle] == nil
+      end
+    end
+    
+    class Dot < Line 
+      js_attr_accessor :size
+      js_attr_accessor :shape
+      js_attr_accessor :angle
+      def initialize( options = {} )
+        super( options )
+        self.type = "pv.Dot"
+        self.size= options[:size] unless options[:size] == nil
+        self.shape= options[:shape] unless options[:shape] == nil
+        self.angle= options[:angle] unless options[:angle] == nil
+      end
+    end 
+    
     class Rule < Mark 
       js_attr_accessor :lineWidth
       js_attr_accessor :strokeStyle
@@ -77,7 +153,6 @@ module Protovis
     end
 
     class Bar < Rule
-      attr_accessor :children
 
       js_attr_accessor :width
       js_attr_accessor :height
@@ -89,32 +164,8 @@ module Protovis
         self.width= options[:width] unless options[:width] == nil
         self.height= options[:height] unless options[:height] == nil
         self.fillStyle= options[:fillStyle] unless options[:fillStyle] == nil
-        self.children = []
       end
 
-      def add( child ) 
-        self.children << child
-        child.parent= self
-      end 
-      
-      def get_parents( parents =[])
-          if self.children && self.children.size > 0 
-            parents << self
-            self.children.each do |child|
-             child.get_parents( parents) 
-            end
-          end
-      end
-      
-      def get_children( children =[])
-        if self.children && self.children.size > 0 
-          self.children.each do |child|
-           child.get_children( children) 
-          end
-        else
-          children << self
-        end
-      end
       
     end
     

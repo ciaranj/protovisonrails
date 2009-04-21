@@ -1,0 +1,8 @@
+Minimum set of things outstanding
+---------------------------------
+
+#Support Anchors
+#Make StrokeStyles/Colours programmatic
+#Define Ruby object for 'function'
+#Add in 'children' property to constructors to allow nested construction
+#Allow not specifying of 'name', default to the lower-camel-case type name
