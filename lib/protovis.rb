@@ -31,7 +31,11 @@ module Protovis
           if @js_properties != nil && @js_properties.keys != nil 
             prop <<"."
             @js_properties.keys.each do|key|
-              prop << "#{key}(#{@js_properties[key]})."
+              val= @js_properties[key]
+              if val.class == Array
+                val = val.inspect
+              end
+              prop << "#{key}(#{val})."
             end
           end
           prop.chomp(".")
@@ -39,6 +43,8 @@ module Protovis
     end
 
     class Mark < ProtoVisObject
+      attr_accessor :parent
+
         js_attr_accessor :data
         js_attr_accessor :visible
         js_attr_accessor :left
@@ -54,6 +60,7 @@ module Protovis
           self.top= options[:top] unless options[:top] == nil
           self.bottom= options[:bottom] unless options[:bottom] == nil
           self.name= options[:name] unless options[:name] == nil
+          self.parent = nil
         end
     end
     
@@ -64,12 +71,14 @@ module Protovis
       def initialize( options = {} )
         super( options )
         self.type = "pv.Rule"
-        self.data= options[:lineWidth] unless options[:lineWidth] == nil
-        self.data= options[:strokeStyle] unless options[:strokeStyle] == nil
+        self.lineWidth= options[:lineWidth] unless options[:lineWidth] == nil
+        self.strokeStyle= options[:strokeStyle] unless options[:strokeStyle] == nil
       end
     end
 
     class Bar < Rule
+      attr_accessor :children
+
       js_attr_accessor :width
       js_attr_accessor :height
       js_attr_accessor :fillStyle
@@ -79,34 +88,78 @@ module Protovis
         self.type = "pv.Bar"
         self.width= options[:width] unless options[:width] == nil
         self.height= options[:height] unless options[:height] == nil
+        self.fillStyle= options[:fillStyle] unless options[:fillStyle] == nil
+        self.children = []
       end
+
+      def add( child ) 
+        self.children << child
+        child.parent= self
+      end 
+      
+      def get_parents( parents =[])
+          if self.children && self.children.size > 0 
+            parents << self
+            self.children.each do |child|
+             child.get_parents( parents) 
+            end
+          end
+      end
+      
+      def get_children( children =[])
+        if self.children && self.children.size > 0 
+          self.children.each do |child|
+           child.get_children( children) 
+          end
+        else
+          children << self
+        end
+      end
+      
     end
     
-    
+    class Area < Bar
+      def initialize( options = {} )
+        super( options )
+        self.type= "pv.Area"
+      end
+    end    
     
     class Panel < Bar
       
-      attr_accessor :children
       
       def initialize( options = {} )
         options[:name]= "vis" if options[:name] == nil
         super ( options )
-        self.children = []
-  
+        self.type= "pv.Panel"
       end
     
-      def add( child ) 
-        self.children << child
-      end 
       
       def to_js
-        js= "var #{@name}= new pv.Panel()#{properties_as_js};\n"
-        self.children.each do |child|
-          js << "var #{child.name}= #{@name}.add(#{child.type})#{child.properties_as_js};\n" 
+        # find_parents  
+        parents=[]
+        self.get_parents( parents )
+        js = ""
+        parents.each do |parent|
+          if parent == self
+            js<< "var #{@name}= new pv.Panel()#{properties_as_js};\n"
+          else
+            js<< "var #{parent.name}= #{parent.parent.name}.add(#{parent.type})#{parent.properties_as_js};\n"
+          end
         end
+        children= []
+        self.get_children( children )
+        children.each do |child|
+            js<< "var #{child.name}= #{child.parent.name}.add(#{child.type})#{child.properties_as_js};\n"
+        end        
         return js
       end
     end
+    
+#    class Range
+#      
+#      pv.range = function(start, end, step) {
+#    end
     
     class JavascriptFunction
       attr_accessor :functionName
@@ -125,57 +178,14 @@ module Protovis
     
       # Constructs a protovis chart of a particular fixed width and height, using the passed in 
       # raw javascript to construct the chart.
-      # 
-      # Example usage:
-      #   my_js= <<eos
-      #             add(pv.Rule)
-      #                .data(function() pv.range(0, 2, .5))
-      #                .bottom(function(d) d * 70)
-      #                .anchor("left").add(pv.Label)
-      #              .root.add(pv.Bar)
-      #                .data([1, 1.2, 1.7, 1.5, .7])
-      #                .height(function(d) d * 70).width(20)
-      #                .bottom(0).left(function() this.index * 25 + 4)
-      #eos                .anchor("bottom").add(pv.Label)
-      #  
-      #  chart_raw_js(800, 600, my_js)
-      def chart_raw_js(width, height, raw_js)
+      def chart_raw_js( raw_js)
+         javascript_tag(raw_js)
+      end
 
-       panel =  Panel.new(:name=> 'panel', :width=> width, :height => height )
-       bar= Bar.new(:name=> 'bars', 
-                    :width=> 20,
-                    :bottom=> 0, 
-                    :height=> "function(d) d * 70",
-                    :left => "function() this.index * 25 + 4",
-                    :data => "[1, 1.2, 1.7, 1.5, .7]"
-                    )
-       rule= Rule.new(:name => 'rules',
-                      :data => "function() pv.range(0,2, .5)",
-                      :bottom=> "function(d) d * 70")
-                    
-      panel.add( rule )
-       panel.add( bar )
-       chart_js= panel.to_js
-      # chart_js << raw_js
-       chart_js<< "#{panel.name}.render();"
-       javascript_tag(chart_js)
+      def render_protovis_panel(panel)
+         chart_js= panel.to_js
+         chart_js<< "#{panel.name}.render();"
+         chart_raw_js( chart_js )
       end
-      
-      def chart(width, height, chart) 
-        
-        chart.sprint_data
-        my_js= <<eos
-                   vis.add(pv.Rule)
-                      .data(function() pv.range(0, 2, .5))
-                      .bottom(function(d) d * 70)
-                      .anchor("left").add(pv.Label);
-                      
-                    vis.add(pv.Bar)
-                      .data([1, 1.2, 1.7, 1.5, .7])
-                      .height(function(d) d * 70).width(20)
-                      .bottom(0).left(function() this.index * 25 + 4)
-                      .anchor("bottom").add(pv.Label);
-eos
-        return chart_raw_js(width, height, my_js)
-      end
+
 end
