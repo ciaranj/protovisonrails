@@ -29,6 +29,14 @@ module Protovis
       BOTTOM= "\"bottom\""      
     end
     
+    class Shape
+      CIRCLE="circle"
+      SQUARE= "square"
+      TRIANGLE= "triangle"
+      CROSS="cross"
+      DIAMOND= "diamond"
+    end
+    
     class ProtoVisObject
       attr_accessor :children
       attr_accessor :parent

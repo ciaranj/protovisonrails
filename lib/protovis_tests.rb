@@ -2,8 +2,90 @@ require 'protovis'
 module ProtovisTests
   def render_protovis_tests
     js =""
+    js << dot_charts
     js << area_charts
     js << bar_charts
+  end
+  
+  
+  def dot_charts
+      js = ""
+      panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
+      dot= Protovis::Dot.new(:name=> 'dot',
+                             :left => "function(d) d[0] *150",
+                             :bottom => "function(d) d[1] *50",
+                             :data => [[0.1, 1], [0.5, 1.2], [0.9, 1.7], [0.2, 1.5], [0.7, 2.2]]
+                            )
+      panel.add( dot )
+      js << render_protovis_panel(panel)
+
+      panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
+      dot= Protovis::Dot.new(:name=> 'dot',
+                             :left => "function() this.index * 25 + 10",
+                             :bottom => "function(d) d * 80",
+                             :data => [1, 1.2, 1.7, 1.5, 0.7]
+                            )
+      panel.add( dot )
+      bar= Protovis::Bar.new(:name => 'bar',
+                              :bottom => 0,
+                              :width => 1, 
+                              :left => "function() dot.left() - 0.5",
+                              :height=> "function(d) dot.bottom() - 5")
+      dot.add(bar)
+      js << render_protovis_panel(panel)
+      
+      nestedSetData= [[0.1, 1, 0.4], [0.5, 1.2, 0.3], [0.9, 1.7, 0.1],
+              [0.4, 1.5, 1], [0.3, 1.4, 4], [0.7, 2.2, 1]]
+      panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
+      dot= Protovis::Dot.new(:name=> 'dot',
+                             :left => "function(d) d[0] * 100",
+                             :bottom => "function(d) d[1] * 50",
+                             :size => "function(d) d[2] * 200",
+                             :data => nestedSetData
+                            )
+      panel.add( dot )
+      js << render_protovis_panel(panel)      
+       
+      nestedSetData.sort! {|x,y| x[2] <=> y[2] }
+      panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
+      dot= Protovis::Dot.new(:name=> 'dot',
+                             :left => "function(d) d[0] * 100",
+                             :bottom => "function(d) d[1] * 50",
+                             :size => "function(d) d[2] * 200",
+                             :data => nestedSetData,
+                             :strokeStyle => "white",
+                             :fillStyle => Protovis::RGBA.new(30,120,180, 0.4)
+                            )
+      panel.add( dot )
+      js << render_protovis_panel(panel)      
+      
+      
+      panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
+      dot= Protovis::Dot.new(:name=> 'dot',
+                            :left => "function(d) d[0] * 50",
+                            :top => "function(d) d[1] * 50",
+                            :data=> [[0.1, 1], [0.5, 1.2], [0.9, 1.7], [0.2, 1.5], [0.7, 2.2]])
+      panel.add( dot )
+      js << render_protovis_panel(panel)      
+
+      panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
+      dot= Protovis::Dot.new(:name=> 'dot',
+                            :right => "function(d) d[0] * 50",
+                            :top => "function(d) d[1] * 50",
+                            :data=> [[0.1, 1], [0.5, 1.2], [0.9, 1.7], [0.2, 1.5], [0.7, 2.2]])
+      panel.add( dot )
+      js << render_protovis_panel(panel)      
+      
+      panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
+      dot= Protovis::Dot.new(:name=> 'dot',
+                             :data => [Protovis::Shape::CIRCLE, Protovis::Shape::SQUARE, 
+                                       Protovis::Shape::TRIANGLE, Protovis::Shape::CROSS, Protovis::Shape::DIAMOND],
+                             :left => "function() Math.random() * 100 + 25",
+                             :bottom => "function() this.index * 25 + 25",
+                             :shape => "function(d) d",
+                             :fillStyle => "function() pv.Colors.category10.values[this.index]")
+        panel.add( dot )
+        js << render_protovis_panel(panel)      
   end
   
   def area_charts
