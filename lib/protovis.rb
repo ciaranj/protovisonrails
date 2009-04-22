@@ -41,14 +41,18 @@ module Protovis
       attr_accessor :children
       attr_accessor :parent
       attr_accessor :anchor
+      attr_accessor :properties
       
       def get_parents( parents =[])
-          if self.children && self.children.size > 0 
-            parents << self
-            self.children.each do |child|
-             child.get_parents( parents) 
-            end
+        if (self.children && self.children.size > 0) || (self.properties && self.properties.size > 0) 
+          parents << self
+        end
+
+        if self.children && self.children.size > 0 
+          self.children.each do |child|
+           child.get_parents( parents) 
           end
+        end
       end
       
       def get_children( children =[])
@@ -56,6 +60,7 @@ module Protovis
           self.children.each do |child|
            child.get_children( children) 
           end
+        elsif self.properties && self.properties.size > 0 # We throw away leaves that have properties, and pretend they're parents! 
         else
           children << self
         end
@@ -85,8 +90,7 @@ module Protovis
           prop =""
           if @js_properties != nil && @js_properties.keys != nil 
             prop <<"."
-            @js_properties.keys.each do|key|
-              val= @js_properties[key]
+            @js_properties.each do|key, val|
               if val.class == Array
                 val = val.inspect
               elsif val.respond_to?(:to_js)
@@ -109,6 +113,16 @@ module Protovis
             child.parent= self
             child.anchor= anchor unless anchor == Anchor::NONE
         end 
+        
+        def method_missing(name, *args)
+           if name.to_s =~ /=$/
+             if self.properties == nil
+               self.properties = {}
+            end
+            prop_name= name.to_s.chomp("=")
+            self.properties[prop_name]= args[0]
+           end
+         end
     end
 
     class Mark < ProtoVisObject
@@ -216,6 +230,11 @@ module Protovis
             parent_string=  parent.parent.name.dup
             parent_string << ".anchor(#{parent.anchor})" if parent.anchor != Anchor::NONE
             js<< "var #{parent.name}= #{parent_string}.add(#{parent.type})#{parent.properties_as_js};\n"
+            if parent.properties != nil 
+              parent.properties.each do |key,val|
+                js << "#{parent.name}.#{key}= #{val};\n"
+              end
+            end
           end
         end
         children= []
