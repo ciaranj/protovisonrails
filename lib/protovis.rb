@@ -21,8 +21,19 @@ module Protovis
       end
     end
     
+    class AnchoredChild
+      attr_accessor :location
+      attr_accessor :child
+      def initialize(child, location=nil)
+        self.location= location
+        self.child= child
+      end
+    end
+    
     class ProtoVisObject
       attr_accessor :children
+      attr_accessor :parent
+      attr_accessor :anchor
       
       def get_parents( parents =[])
           if self.children && self.children.size > 0 
@@ -81,19 +92,19 @@ module Protovis
           end
           prop.chomp(".")
         end
-        def add( child ) 
-          if self.children == nil 
-            self.children = [] 
-          end
-          
-          self.children << child
-          child.parent= self
+        
+        def add( child, anchor=nil ) 
+            if self.children == nil 
+              self.children = [] 
+            end
+
+            self.children << child
+            child.parent= self
+            child.anchor= anchor unless anchor == nil
         end 
-  
     end
 
     class Mark < ProtoVisObject
-      attr_accessor :parent
 
         js_attr_accessor :data
         js_attr_accessor :visible
@@ -195,13 +206,17 @@ module Protovis
           if parent == self
             js<< "var #{@name}= new pv.Panel()#{properties_as_js};\n"
           else
-            js<< "var #{parent.name}= #{parent.parent.name}.add(#{parent.type})#{parent.properties_as_js};\n"
+            parent_string=  parent.parent.name.dup
+            parent_string << ".anchor(\"#{parent.anchor}\")" if parent.anchor != nil
+            js<< "var #{parent.name}= #{parent_string}.add(#{parent.type})#{parent.properties_as_js};\n"
           end
         end
         children= []
         self.get_children( children )
         children.each do |child|
-            js<< "var #{child.name}= #{child.parent.name}.add(#{child.type})#{child.properties_as_js};\n"
+          parent_string=  child.parent.name.dup
+          parent_string << ".anchor(\"#{child.anchor}\")" if child.anchor != nil
+            js<< "var #{child.name}= #{parent_string}.add(#{child.type})#{child.properties_as_js};\n"
         end        
         return js
       end

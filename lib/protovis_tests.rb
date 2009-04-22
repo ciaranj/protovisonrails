@@ -86,7 +86,20 @@ module ProtovisTests
       line = Protovis::Line.new(:name=> 'line', 
                                 :strokeStyle=> "white")
       area2.add(line)
-      js << render_protovis_panel(panel)    
+      js << render_protovis_panel(panel)   
+      
+      panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
+      area= Protovis::Area.new(:name=> 'area', 
+                               :bottom=>10,
+                               :height => "function(d) d* 60",
+                               :left => "function() this.index * 20 + 10",
+                               :data => [1, 1.2, 1.7, 1.5, 0.7, 0.5, 0.2])
+      panel.add(area)
+      dot1= Protovis::Dot.new(:name=> 'dot1', :fillStyle=>"green")
+      dot2= Protovis::Dot.new(:name=> 'dot2', :fillStyle=>"red")
+      area.add(dot1, "top")
+      area.add(dot2, "bottom")
+      js << render_protovis_panel(panel)
   end
 
   def bar_charts
