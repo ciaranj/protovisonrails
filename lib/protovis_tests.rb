@@ -97,9 +97,61 @@ module ProtovisTests
       panel.add(area)
       dot1= Protovis::Dot.new(:name=> 'dot1', :fillStyle=>"green")
       dot2= Protovis::Dot.new(:name=> 'dot2', :fillStyle=>"red")
-      area.add(dot1, "top")
-      area.add(dot2, "bottom")
+      area.add(dot1, Protovis::Anchor::TOP)
+      area.add(dot2, Protovis::Anchor::BOTTOM)
       js << render_protovis_panel(panel)
+
+
+      panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
+      area= Protovis::Area.new(:name=> 'area', 
+                               :bottom=>75,
+                               :height => "function(d) d* 30",
+                               :left => "function() this.index * 22 + 10",
+                               :data => [1, 1.2, 1.7, 1.5, 0.7, 0.5, 0.2])
+      panel.add(area)
+      area2= Protovis::Area.new(:name=> 'area2', 
+                                :data => [0.4, 0.2, 0.8, 1.2, 1.5, 1.1, 0.8])
+      area.add(area2, Protovis::Anchor::BOTTOM)
+      js << render_protovis_panel(panel)
+      
+      panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
+      area= Protovis::Area.new(:name=> 'area', 
+                               :bottom=>"function(d) d * 10 + 55",
+                               :height => "function(d) d* 30",
+                               :left => "function() this.index * 22 + 10",
+                               :data => [1, 1.2, 1.7, 1.5, 0.7, 0.5, 0.2])
+      panel.add(area)
+      area2= Protovis::Area.new(:name=> 'area2', 
+                                :data => [0.4, 0.2, 0.8, 1.2, 1.5, 1.1, 0.8])
+      area.add(area2, Protovis::Anchor::BOTTOM)
+      js << render_protovis_panel(panel)
+      
+      
+      panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
+      area= Protovis::Area.new(:name=> 'area', 
+                               :bottom=>"function(d) this.index * 20 + 10 ",
+                               :width => "function(d) d* 60",
+                               :left => 10,
+                               :data => [1, 1.2, 1.7, 1.5, 0.7, 0.5, 0.2])
+      panel.add(area)
+      line = Protovis::Line.new(:name=>'line', :strokeStyle=>"green")
+      line2= Protovis::Line.new(:name=> 'line2', :strokeStyle => "red")
+      area.add(line, Protovis::Anchor::RIGHT)
+      area.add(line2, Protovis::Anchor::LEFT)
+      js << render_protovis_panel(panel)
+      
+        panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
+        area= Protovis::Area.new(:name=> 'area', 
+                                 :left=>"function(d) this.index * 20 + 10 ",
+                                 :height => "function(d) d* 75",
+                                 :bottom => 10,
+                                 :data => [1, 1.2, 1.7, 1.5, 0.7, 0.5, 0.2],
+                                 :strokeStyle=>"black")
+        panel.add(area)
+        js << render_protovis_panel(panel)
+
+
+      
   end
 
   def bar_charts

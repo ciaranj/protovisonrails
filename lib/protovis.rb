@@ -20,14 +20,13 @@ module Protovis
         %{"rgba(#{@red}, #{@green}, #{@blue}, #{@alpha})"}
       end
     end
-    
-    class AnchoredChild
-      attr_accessor :location
-      attr_accessor :child
-      def initialize(child, location=nil)
-        self.location= location
-        self.child= child
-      end
+
+    class Anchor
+      NONE= nil
+      LEFT= "\"left\""
+      RIGHT= "\"right\""
+      TOP= "\"top\""
+      BOTTOM= "\"bottom\""      
     end
     
     class ProtoVisObject
@@ -93,14 +92,14 @@ module Protovis
           prop.chomp(".")
         end
         
-        def add( child, anchor=nil ) 
+        def add( child, anchor=Anchor::NONE ) 
             if self.children == nil 
               self.children = [] 
             end
 
             self.children << child
             child.parent= self
-            child.anchor= anchor unless anchor == nil
+            child.anchor= anchor unless anchor == Anchor::NONE
         end 
     end
 
@@ -207,7 +206,7 @@ module Protovis
             js<< "var #{@name}= new pv.Panel()#{properties_as_js};\n"
           else
             parent_string=  parent.parent.name.dup
-            parent_string << ".anchor(\"#{parent.anchor}\")" if parent.anchor != nil
+            parent_string << ".anchor(#{parent.anchor})" if parent.anchor != Anchor::NONE
             js<< "var #{parent.name}= #{parent_string}.add(#{parent.type})#{parent.properties_as_js};\n"
           end
         end
@@ -215,7 +214,7 @@ module Protovis
         self.get_children( children )
         children.each do |child|
           parent_string=  child.parent.name.dup
-          parent_string << ".anchor(\"#{child.anchor}\")" if child.anchor != nil
+          parent_string << ".anchor(#{child.anchor})" if child.anchor != Anchor::NONE
             js<< "var #{child.name}= #{parent_string}.add(#{child.type})#{child.properties_as_js};\n"
         end        
         return js
