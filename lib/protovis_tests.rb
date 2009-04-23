@@ -2,6 +2,7 @@ require 'protovis'
 module ProtovisTests
   def render_protovis_tests
     js =""
+    js << wedge_charts
     js << rule_charts
     js << line_charts
     js << dot_charts
@@ -13,6 +14,22 @@ module ProtovisTests
       panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
       yield(panel)
       render_protovis_panel(panel)
+  end
+  
+  def wedge_charts
+    js= ""
+    data= [1, 1.2, 1.7, 1.5, 0.7]
+    sum= data.inject(0){|sum,item| sum + item}
+    normalised_data= data.map {|item| item / sum }
+    js << create_and_render_panel do |panel|
+      wedge= Protovis::Wedge.new(:name=>'wedge',
+                                 :data=> normalised_data,
+                                 :left=> 75,
+                                 :bottom => 75,
+                                 :outerRadius => 70,
+                                 :angle => "function(d) d * 2 * Math.PI")
+      panel.add( wedge )
+    end
   end
   
   def rule_charts

@@ -184,6 +184,24 @@ module Protovis
       end
     end
 
+    class Wedge < Line
+      js_attr_accessor :startAngle
+      js_attr_accessor :endAngle
+      js_attr_accessor :angle
+      js_attr_accessor :innerRadius
+      js_attr_accessor :outerRadius
+      
+      def initialize( options = {} )
+        super( options )
+        self.type = "pv.Wedge"
+        self.startAngle= options[:startAngle] unless options[:startAngle] == nil
+        self.endAngle= options[:endAngle] unless options[:endAngle] == nil
+        self.angle= options[:angle] unless options[:angle] == nil
+        self.innerRadius= options[:innerRadius] unless options[:innerRadius] == nil
+        self.outerRadius= options[:outerRadius] unless options[:outerRadius] == nil
+      end
+    end
+
     class Bar < Rule
 
       js_attr_accessor :width
