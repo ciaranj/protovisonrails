@@ -2,6 +2,7 @@ require 'protovis'
 module ProtovisTests
   def render_protovis_tests
     js =""
+    js << rule_charts
     js << line_charts
     js << dot_charts
     js << area_charts
@@ -14,6 +15,78 @@ module ProtovisTests
       render_protovis_panel(panel)
   end
   
+  def rule_charts
+    js= ""
+    js << create_and_render_panel do |panel|
+      bar= Protovis::Bar.new(:name=>'bar',
+                             :data=>[1,1.2,1.7,1.5,0.7],
+                             :bottom=>10,
+                             :width=>20,
+                             :height=>"function(d) d* 70",
+                             :left=>"function() this.index * 25 + 15")
+      panel.add( bar )
+      rule= Protovis::Rule.new(:name=> 'rule', :bottom=>10)
+      panel.add( rule )
+    end
+    js << create_and_render_panel do |panel|
+      bar= Protovis::Bar.new(:name=>'bar',
+                             :data=>[1,1.2,1.7,1.5,0.7],
+                             :bottom=>10,
+                             :width=>20,
+                             :height=>"function(d) d* 70",
+                             :left=>"function() this.index * 25 + 15")
+      panel.add( bar )
+      axis= Protovis::Rule.new(:name=> 'axis', :bottom=>10)
+      panel.add( axis )
+      grid= Protovis::Rule.new(:name=> 'grid', 
+                               :data => "function() pv.range(1,4)",
+                               :bottom=>"function(d) d * 70 /2 + 10",
+                               :strokeStyle => "white")
+      panel.add( grid )
+    end
+    
+    js << create_and_render_panel do |panel|
+     rule= Protovis::Rule.new(:name=> 'rule', :data=> "function() pv.range(4)", :bottom=>"function(d) d * 70 /2 + 10")
+     panel.add( rule)
+     bar= Protovis::Bar.new(:name=>'bar',
+                               :data=>[1,1.2,1.7,1.5,0.7],
+                               :bottom=>10,
+                               :width=>20,
+                               :height=>"function(d) d* 70",
+                               :left=>"function() this.index * 25 + 15")
+      panel.add( bar )
+    end
+    
+    js << create_and_render_panel do |panel|
+      bar= Protovis::Bar.new(:name=>'bar',
+                                :data=>[1,1.2,1.7,1.5,0.7],
+                                :bottom=>10,
+                                :width=>20,
+                                :height=>"function(d) d* 70",
+                                :left=>"function() this.index * 25 + 15")
+      panel.add( bar )
+      rule= Protovis::Rule.new(:name=> 'rule', :bottom=>10, :left=>15, :right=>15)
+      panel.add( rule )
+    end
+    
+    js << create_and_render_panel do |panel|
+      bar= Protovis::Bar.new(:name=>'bar',
+                                :data=>[1,1.2,1.7,1.5,0.7],
+                                :left=>10,
+                                :height=>20,
+                                :width=>"function(d) d* 70",
+                                :top=>"function() this.index * 25 + 15")
+      panel.add( bar )
+
+      rule= Protovis::Rule.new(:name=>'rule', :left=>10)
+      panel.add(rule)
+      rule2= Protovis::Rule.new(:name=>'rule2', 
+                                :strokeStyle=>'white',
+                                :data=>'function() pv.range(1, 4)',
+                                :left=>'function(d) d * 70 / 2 + 10' )
+      panel.add(rule2)
+    end
+  end
   
   def line_charts
     
