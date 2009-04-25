@@ -92,7 +92,7 @@ module ProtovisTests
       panel.add( donut )
     end
 
-    js << create_and_render_panel_with_javascript('time_lock_panel') do |panel, js|
+    js << create_and_render_panel_with_javascript('time_lock_panel') do |panel, javascript|
       donut= Protovis::Wedge.new(:name=>'donut', 
                                  :left=> 75,
                                  :bottom=>75, 
@@ -103,9 +103,33 @@ module ProtovisTests
                                  :angle=> "function(d) d * 2")
       donut.s= 0;
       panel.add( donut )
-      js << "setInterval(function() time_lock_panel.render(), 35);"
+      javascript << "setInterval(function() time_lock_panel.render(), 35);"
     end
   
+    js << create_and_render_panel do |panel|
+      wedge= Protovis::Wedge.new(:name=>'wedge', 
+                                 :left=> 75,
+                                 :bottom=>75, 
+                                 :startAngle=> Math::PI,
+                                 :endAngle=>0,
+                                 :innerRadius=>"function() this.index * 5 + 30",
+                                 :outerRadius=>"function() this.index * 5 + 35",
+                                 :data=> ["red", "orange", "yellow", "green","blue", "purple"],
+                                 :fillStyle=> "function(d) d")
+      panel.add( wedge )
+    end
+
+    js << create_and_render_panel do |panel|
+      wedge= Protovis::Wedge.new(:name=>'wedge', 
+                                 :left=> 75,
+                                 :bottom=>75, 
+                                 :angle=>"function(d) d * 2 * Math.PI",
+                                 :outerRadius=>65,
+                                 :data=> normalised_data,
+                                 :strokeStyle=> "white",
+                                 :lineWidth=>4)
+      panel.add( wedge )
+    end
   end
   
   def rule_charts
