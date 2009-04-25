@@ -10,17 +10,28 @@ module ProtovisTests
     js << bar_charts
   end
   
-  def create_and_render_panel 
-      panel =  Protovis::Panel.new(:name=> 'panel', :width=> 150, :height => 150 )
+  def create_and_render_panel( panel_name= 'panel') 
+      panel =  Protovis::Panel.new(:name=> panel_name, :width=> 150, :height => 150 )
       yield(panel)
       render_protovis_panel(panel)
   end
   
+  def create_and_render_panel_with_javascript ( panel_name= 'panel') 
+      js= ""
+      panel =  Protovis::Panel.new(:name=> panel_name, :width=> 150, :height => 150 )
+      yield(panel, js)
+      render_protovis_panel(panel, :javascript=>js)
+  end
+
+  def normalise_data( data ) 
+    sum= data.inject(0){|sum,item| sum + item}
+    data.map {|item| item / sum }
+  end 
+
   def wedge_charts
     js= ""
     data= [1, 1.2, 1.7, 1.5, 0.7]
-    sum= data.inject(0){|sum,item| sum + item}
-    normalised_data= data.map {|item| item / sum }
+    normalised_data= normalise_data( data )
     js << create_and_render_panel do |panel|
       wedge= Protovis::Wedge.new(:name=>'wedge',
                                  :data=> normalised_data,
@@ -30,6 +41,71 @@ module ProtovisTests
                                  :angle => "function(d) d * 2 * Math.PI")
       panel.add( wedge )
     end
+
+    js << create_and_render_panel do |panel|
+      wedge= Protovis::Wedge.new(:name=>'wedge',
+                                 :data=> data,
+                                 :left=> 75,
+                                 :bottom => 75,
+                                 :innerRadius => 50,
+                                 :outerRadius => 70,
+                                 :angle => "function(d) d * this.scale")
+      wedge.scale= 2 * Math::PI /  data.inject(0){|sum,item| sum + item}
+      panel.add( wedge )
+    end
+
+    js << create_and_render_panel do |panel|
+      wedge= Protovis::Wedge.new(:name=>'wedge', 
+                                :data=> data, 
+                                :left=> 75,
+                                :bottom=> 75, 
+                                :outerRadius=> "function(d) Math.sqrt(d) * 50 ",
+                                :angle=>"function() 2 * Math.PI / #{data.length}")
+      panel.add( wedge )
+    end
+    
+    js << create_and_render_panel do |panel|
+      donut= Protovis::Wedge.new(:name=>'donut', 
+                                 :left=> 75,
+                                 :bottom=>75, 
+                                 :innerRadius=>51,
+                                 :outerRadius=>70,
+                                 :data=> normalised_data,
+                                 :angle=> "function(d) d * 2 * Math.PI")
+      panel.add( donut )
+      child_donut= Protovis::Wedge.new(:name=>'child_donut',
+                                      :innerRadius=>30,
+                                      :outerRadius=>49,
+                                      :data=> normalise_data([0.3,0.2,1,1.5,0.4]))
+      donut.add( child_donut )
+    end
+
+    js << create_and_render_panel do |panel|
+      donut= Protovis::Wedge.new(:name=>'donut', 
+                                 :left=> 75,
+                                 :bottom=>75, 
+                                 :startAngle=> Math::PI,
+                                 :innerRadius=>"function() this.index * 10 + 20",
+                                 :outerRadius=>"function() this.index * 10 + 30",
+                                 :data=> data,
+                                 :angle=> "function(d) d * 2")
+      panel.add( donut )
+    end
+
+    js << create_and_render_panel_with_javascript('time_lock_panel') do |panel, js|
+      donut= Protovis::Wedge.new(:name=>'donut', 
+                                 :left=> 75,
+                                 :bottom=>75, 
+                                 :startAngle=> "function() (this.s += .001) * (this.index + 1)",
+                                 :innerRadius=>"function() this.index * 10 + 20",
+                                 :outerRadius=>"function() this.index * 10 + 30",
+                                 :data=> data,
+                                 :angle=> "function(d) d * 2")
+      donut.s= 0;
+      panel.add( donut )
+      js << "setInterval(function() time_lock_panel.render(), 35);"
+    end
+  
   end
   
   def rule_charts

@@ -292,9 +292,10 @@ module Protovis
          javascript_tag(raw_js)
       end
 
-      def render_protovis_panel(panel)
+      def render_protovis_panel(panel, options= {})
          chart_js= panel.to_js
-         chart_js<< "#{panel.name}.render();"
+         chart_js<< "#{panel.name}.render();\n"
+         chart_js << options[:javascript] << "\n"  if options[:javascript] 
          chart_raw_js( chart_js )
       end
 
